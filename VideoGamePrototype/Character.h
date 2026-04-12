@@ -14,11 +14,18 @@ public:
 	void SetVelocity(const Vector2f& velocity);
 
 	void Update(float elapsedSec, const Rectf& playfield);
+	void CollisionDetection(Character& other);
 
 	void Draw() const;
 
 private:
+	void DrawHealthBar() const;
+
 	static Vector2f GenerateRandomPosition(const Rectf& playfield);
+
+	const float m_MaxHealth{ 200.f };
+	float m_CurrentHealth{ m_MaxHealth };
+	float m_EndHealth{ m_CurrentHealth };
 	
 	Color4f m_FillColor{};
 	Color4f m_OutlineColor{};
@@ -27,5 +34,7 @@ private:
 	Vector2f m_Velocity{};
 
 	static const float m_Radius;
+	static const float m_BounceFactor;
+	static const float m_AnimationTime;
 };
 

@@ -40,6 +40,14 @@ void CharacterManager::Update(float elapsedSec) {
 	m_Player.Update(elapsedSec, m_Playfield);
 	for (Character* pEnemy : m_pEnemies) {
 		pEnemy->Update(elapsedSec, m_Playfield);
+		m_Player.CollisionDetection(*pEnemy);
+	}
+	for (size_t index1{ 0 }; index1 < m_pEnemies.size(); ++index1) {
+		for (size_t index2{ 0 }; index2 < m_pEnemies.size(); ++index2) {
+			if (m_pEnemies.at(index1) != m_pEnemies.at(index2)) {
+				m_pEnemies.at(index1)->CollisionDetection(*m_pEnemies.at(index2));
+			}
+		}
 	}
 }
 
