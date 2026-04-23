@@ -7,9 +7,11 @@ const float Character::m_Radius{ 40.f };
 const float Character::m_BounceFactor{ 0.75f };
 const float Character::m_AnimationTime{ 0.5f };
 
-Character::Character(const Rectf& playfield, const Color4f& fillColor, const Color4f& outlineColor)
+Character::Character(bool isPlayer, const Rectf& playfield, const Color4f& fillColor, const Color4f& outlineColor)
 	: m_FillColor{fillColor}
+	, m_IsPlayer{isPlayer}
 	, m_OutlineColor{outlineColor}
+	, m_Playfield{playfield}
 {
 	SetPosition(GenerateRandomPosition(playfield));
 }
@@ -45,38 +47,45 @@ void Character::SetVelocity(const Vector2f& velocity)
 }
 
 void Character::Update(float elapsedSec, const Rectf& playfield) {
-	const float friction{ 0.60f };
+	if (m_CurrentHealth > 0.f) {
+		const float friction{ 0.60f };
 
-	m_Position += m_Velocity * elapsedSec;
-	m_Velocity *= std::powf(friction, elapsedSec);
+		m_Position += m_Velocity * elapsedSec;
+		m_Velocity *= std::powf(friction, elapsedSec);
 
-	if (m_CurrentHealth != m_EndHealth && m_CurrentHealth > m_EndHealth) {
-		m_CurrentHealth -= elapsedSec * 100.f;
-	}
-	if (m_CurrentHealth <= m_EndHealth) {
-		m_CurrentHealth = m_EndHealth;
-	}
+		if (m_CurrentHealth != m_EndHealth && m_CurrentHealth > m_EndHealth) {
+			m_CurrentHealth -= elapsedSec * 100.f;
+		}
+		if (m_CurrentHealth <= m_EndHealth) {
+			m_CurrentHealth = m_EndHealth;
+		}
 
-	if (m_Velocity.Length() < 0.1f) {
-		m_Velocity = Vector2f{ 0.f, 0.f };
-	}
+		if (m_Velocity.Length() < 0.1f) {
+			m_Velocity = Vector2f{ 0.f, 0.f };
+		}
 
-	if (m_Position.x - m_Radius <= playfield.left) {
-		m_Position.x = playfield.left + m_Radius;
-		m_Velocity.x = std::fabsf(m_Velocity.x) * m_BounceFactor;
-	}
-	else if (m_Position.x + m_Radius >= playfield.left + playfield.width) {
-		m_Position.x = (playfield.left + playfield.width) - m_Radius;
-		m_Velocity.x = -std::fabsf(m_Velocity.x) * m_BounceFactor;
-	}
+		if (m_Position.x - m_Radius <= playfield.left) {
+			m_Position.x = playfield.left + m_Radius;
+			m_Velocity.x = std::fabsf(m_Velocity.x) * m_BounceFactor;
+		}
+		else if (m_Position.x + m_Radius >= playfield.left + playfield.width) {
+			m_Position.x = (playfield.left + playfield.width) - m_Radius;
+			m_Velocity.x = -std::fabsf(m_Velocity.x) * m_BounceFactor;
+		}
 
-	if (m_Position.y - m_Radius <= playfield.bottom) {
-		m_Position.y = playfield.bottom + m_Radius;
-		m_Velocity.y = std::fabsf(m_Velocity.y) * m_BounceFactor;
+		if (m_Position.y - m_Radius <= playfield.bottom) {
+			m_Position.y = playfield.bottom + m_Radius;
+			m_Velocity.y = std::fabsf(m_Velocity.y) * m_BounceFactor;
+		}
+		else if (m_Position.y + m_Radius >= playfield.bottom + playfield.height) {
+			m_Position.y = (playfield.bottom + playfield.height) - m_Radius;
+			m_Velocity.y = -std::fabsf(m_Velocity.y) * m_BounceFactor;
+		}
 	}
-	else if (m_Position.y + m_Radius >= playfield.bottom + playfield.height) {
-		m_Position.y = (playfield.bottom + playfield.height) - m_Radius;
-		m_Velocity.y = -std::fabsf(m_Velocity.y) * m_BounceFactor;
+	else {
+		if (!m_IsPlayer) {
+			Reset();
+		}
 	}
 }
 
@@ -96,8 +105,33 @@ void Character::CollisionDetection(Character& other)
 		}
 
 		const float impulseStrength{ -(1 + m_BounceFactor) * speedAlongNormal / 2.f };
+		
+		float damageSomething{};
+		if (this->m_Velocity.Length() > other.m_Velocity.Length()) {
+			if (this->m_IsPlayer) {
+				damageSomething = 10.f;
+			}
+			else {
+				damageSomething = 1.f;
+			}
+		}
+		else {
+			if (other.m_IsPlayer) {
+				damageSomething = 10.f;
+			}
+			else {
+				damageSomething = 1.f;
+			}
+		}
 
-		other.m_EndHealth -= 17.f;
+		const float damage{ relativeVelocity.Length() / (m_MaxHealth/damageSomething) };
+
+		if (this->m_Velocity.Length() > other.m_Velocity.Length()) {
+			other.m_EndHealth -= damage;
+		}
+		else {
+			this->m_EndHealth -= damage;
+		}
 
 		m_Velocity += impulseStrength * normal;
 		other.m_Velocity -= impulseStrength * normal;
@@ -109,11 +143,13 @@ void Character::CollisionDetection(Character& other)
 }
 
 void Character::Draw() const {
-	utils::SetColor(m_FillColor);
-	utils::FillEllipse(m_Position, m_Radius, m_Radius);
-	DrawHealthBar();
-	utils::SetColor(m_OutlineColor);
-	utils::DrawEllipse(m_Position, m_Radius, m_Radius, 5.f);
+	if (m_CurrentHealth > 0.f) {
+		utils::SetColor(m_FillColor);
+		utils::FillEllipse(m_Position, m_Radius, m_Radius);
+		DrawHealthBar();
+		utils::SetColor(m_OutlineColor);
+		utils::DrawEllipse(m_Position, m_Radius, m_Radius, 5.f);
+	}
 }
 
 void Character::DrawHealthBar() const
@@ -124,6 +160,14 @@ void Character::DrawHealthBar() const
 	
 	utils::SetColor(Color4f{ 1.f,1.f,1.f,0.25f });
 	utils::FillArc(m_Position, m_Radius, m_Radius, 0.f+pi/2.f, healthBarAngle+pi/2.f);
+}
+
+void Character::Reset()
+{
+	m_Position = GenerateRandomPosition(m_Playfield);
+	m_Velocity = Vector2f{ 0.f,0.f };
+	m_CurrentHealth = m_MaxHealth;
+	m_EndHealth = m_MaxHealth;
 }
 
 Vector2f Character::GenerateRandomPosition(const Rectf& playfield)

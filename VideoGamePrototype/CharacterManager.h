@@ -21,6 +21,7 @@ public:
 private:
 	void DrawShotDirection() const;
 	void ShootPlayer();
+	void ShootEnemies();
 
 	Character m_Player;
 	std::vector<Character*> m_pEnemies{};
@@ -30,8 +31,12 @@ private:
 
 	const Rectf m_Playfield{};
 
+	float m_ElapsedSinceLastShot{ 0.f };
+
 	static const float m_MaxCastLength;
 	static const float m_MaxShotPower;
+	static const float m_MinimumEnemyShotPower;
+	static const float m_EnemyShootCooldown;
 
 	static const Color4f m_PlayerFillColor;
 	static const Color4f m_PlayerOutlineColor;

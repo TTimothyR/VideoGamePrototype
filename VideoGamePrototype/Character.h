@@ -2,7 +2,7 @@
 class Character final
 {
 public:
-	explicit Character(const Rectf& playfield, const Color4f& fillColor, const Color4f& outlineColor);
+	explicit Character(bool isPlayer, const Rectf& playfield, const Color4f& fillColor, const Color4f& outlineColor);
 	Character() = default;
 
 	static float GetRadius();
@@ -20,18 +20,23 @@ public:
 
 private:
 	void DrawHealthBar() const;
+	void Reset();
 
 	static Vector2f GenerateRandomPosition(const Rectf& playfield);
 
 	const float m_MaxHealth{ 200.f };
 	float m_CurrentHealth{ m_MaxHealth };
 	float m_EndHealth{ m_CurrentHealth };
+
+	bool m_IsPlayer{};
 	
 	Color4f m_FillColor{};
 	Color4f m_OutlineColor{};
 
 	Vector2f m_Position{};
 	Vector2f m_Velocity{};
+
+	const Rectf m_Playfield{};
 
 	static const float m_Radius;
 	static const float m_BounceFactor;
