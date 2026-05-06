@@ -12,7 +12,7 @@ int SDL_main(int argv, char** args)
 
 	StartHeapControl();
 
-	Game* pGame{ new Game{ Window{ "Video Game Prototype - Tim - 1DAE12", 1280.f , 720.f } } };
+	Game* pGame{ new Game{ Window{ "Video Game Prototype - Tim - 1DAE12", static_cast<float>(GetSystemMetrics(SM_CXSCREEN)), static_cast<float>(GetSystemMetrics(SM_CYSCREEN))}}};
 	pGame->Run();
 	delete pGame;
 
