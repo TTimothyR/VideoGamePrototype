@@ -165,12 +165,16 @@ xcopy "$(ProjectDir)Resources\*.*" "$(TargetDir)" /y /d /s</Command>
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="pch.cpp" />
+    <ClCompile Include="Powerup.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Character.h" />
     <ClInclude Include="CharacterManager.h" />
+    <ClInclude Include="DamageNumber.h" />
+    <ClInclude Include="EnemyType.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="Powerup.h" />
   </ItemGroup>
   <!-- Import the custom .targets file -->
   <Import Project="Prog2Game.targets" />
